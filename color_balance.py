@@ -31,7 +31,7 @@ st.subheader("\n**Checking for:**")
 st.write("- Both signals are present in both channels for every cycle (it is acceptable to have only the Green channel from T or C if needed)")
 st.write("- Avoid having only a signal from the Blue channel from A or A+G in any cycle")
 st.write("- Avoid no signal cycles (only G present)")
-st.write("- Either of the first two cycles must start with one base other than G")
+st.write("- Either of the first two cycles in a single index sequence must start with one base other than G")
 st.write("- Ensure indexes are sufficiently diverse to prevent misassignment")
 st.write("- Check for over-represented nucleotide biases in I7/I5 pairings")
 
