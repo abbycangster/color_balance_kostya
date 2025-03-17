@@ -19,6 +19,17 @@ def check_index_diversity(indexes, min_distance=2):
                        if hamming_distance(seq1, seq2) < min_distance]
     return too_close_pairs
 
+def check_nucleotide_bias(i7_df, i5_df, threshold=50):
+    problematic_cycles = []
+    for cycle in range(len(i7_df)):
+        for base in "ATCG":
+            i7_freq = i7_df.iloc[cycle][base]
+            i5_freq = i5_df.iloc[cycle][base]
+            
+            if i7_freq > threshold and i5_freq > threshold:
+                problematic_cycles.append((cycle + 1, f"Overrepresented nucleotide '{base}' in both I7 and I5 (> {threshold}%)"))
+    return problematic_cycles
+
 st.title("Index Color Balance")
 
 st.subheader("XLEAP SBS reagents on the NextSeq 1000/2000 and NovaSeq X/X Plus")
@@ -31,7 +42,7 @@ st.subheader("\n**Checking for:**")
 st.write("- Both signals are present in both channels for every cycle (it is acceptable to have only the Green channel from T or C if needed)")
 st.write("- Avoid having only a signal from the Blue channel from A or A+G in any cycle")
 st.write("- Avoid no signal cycles (only G present)")
-st.write("- Either of the first two cycles in a single index sequence must start with one base other than G")
+st.write("- Either of the first two cycles must start with one base other than G")
 st.write("- Ensure indexes are sufficiently diverse to prevent misassignment")
 st.write("- Check for over-represented nucleotide biases in I7/I5 pairings")
 
@@ -96,41 +107,16 @@ if uploaded_file:
             
             st.subheader("I7 Index")
             color_balance_df_i7, problematic_cycles_i7 = check_color_balance(i7_indexes, i7_ids)
-            if color_balance_df_i7 is not None:
-                st.dataframe(color_balance_df_i7)
-                
-                fig, ax = plt.subplots()
-                color_balance_df_i7.plot(kind="bar", stacked=True, ax=ax, color=["blue", "green", "cyan", "gray"])
-                ax.set_xlabel("Cycle Position")
-                ax.set_ylabel("Nucleotide %")
-                ax.set_title("I7 Nucleotide % Per Cycle")
-                ax.set_xticks(range(len(color_balance_df_i7)))
-                ax.set_xticklabels(range(1, len(color_balance_df_i7) + 1))
-                st.pyplot(fig)
-                
-                if problematic_cycles_i7:
-                    st.warning("⚠️ Potential sequencing issues detected in I7 Index:")
-                    for cycle, issue in problematic_cycles_i7:
-                        st.write(f"Cycle {cycle}: {issue}")
             
             st.subheader("I5 Index")
             color_balance_df_i5, problematic_cycles_i5 = check_color_balance(i5_indexes, i5_ids)
-            if color_balance_df_i5 is not None:
-                st.dataframe(color_balance_df_i5)
-                
-                fig, ax = plt.subplots()
-                color_balance_df_i5.plot(kind="bar", stacked=True, ax=ax, color=["blue", "green", "cyan", "gray"])
-                ax.set_xlabel("Cycle Position")
-                ax.set_ylabel("Nucleotide %")
-                ax.set_title("I5 Nucleotide % Per Cycle")
-                ax.set_xticks(range(len(color_balance_df_i5)))
-                ax.set_xticklabels(range(1, len(color_balance_df_i5) + 1))
-                st.pyplot(fig)
-                
-                if problematic_cycles_i5:
-                    st.warning("⚠️ Potential sequencing issues detected in I5 Index:")
-                    for cycle, issue in problematic_cycles_i5:
-                        st.write(f"Cycle {cycle}: {issue}")
+            
+            # Check for overrepresented nucleotide bias in I7/I5 pairs
+            bias_issues = check_nucleotide_bias(color_balance_df_i7, color_balance_df_i5)
+            if bias_issues:
+                st.warning("⚠️ Overrepresented Nucleotide Bias Detected:")
+                for cycle, issue in bias_issues:
+                    st.write(f"Cycle {cycle}: {issue}")
             
             # Check index diversity
             diversity_issues = check_index_diversity(i7_indexes + i5_indexes)
