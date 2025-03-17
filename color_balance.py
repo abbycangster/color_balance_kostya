@@ -107,9 +107,41 @@ if uploaded_file:
             
             st.subheader("I7 Index")
             color_balance_df_i7, problematic_cycles_i7 = check_color_balance(i7_indexes, i7_ids)
+            if color_balance_df_i7 is not None:
+                st.dataframe(color_balance_df_i7)
+                
+                fig, ax = plt.subplots()
+                color_balance_df_i7.plot(kind="bar", stacked=True, ax=ax, color=["blue", "green", "cyan", "gray"])
+                ax.set_xlabel("Cycle Position")
+                ax.set_ylabel("Nucleotide %")
+                ax.set_title("I7 Nucleotide % Per Cycle")
+                ax.set_xticks(range(len(color_balance_df_i7)))
+                ax.set_xticklabels(range(1, len(color_balance_df_i7) + 1))
+                st.pyplot(fig)
+                
+                if problematic_cycles_i7:
+                    st.warning("⚠️ Potential sequencing issues detected in I7 Index:")
+                    for cycle, issue in problematic_cycles_i7:
+                        st.write(f"Cycle {cycle}: {issue}")
             
             st.subheader("I5 Index")
             color_balance_df_i5, problematic_cycles_i5 = check_color_balance(i5_indexes, i5_ids)
+            if color_balance_df_i5 is not None:
+                st.dataframe(color_balance_df_i5)
+                
+                fig, ax = plt.subplots()
+                color_balance_df_i5.plot(kind="bar", stacked=True, ax=ax, color=["blue", "green", "cyan", "gray"])
+                ax.set_xlabel("Cycle Position")
+                ax.set_ylabel("Nucleotide %")
+                ax.set_title("I5 Nucleotide % Per Cycle")
+                ax.set_xticks(range(len(color_balance_df_i5)))
+                ax.set_xticklabels(range(1, len(color_balance_df_i5) + 1))
+                st.pyplot(fig)
+                
+                if problematic_cycles_i5:
+                    st.warning("⚠️ Potential sequencing issues detected in I5 Index:")
+                    for cycle, issue in problematic_cycles_i5:
+                        st.write(f"Cycle {cycle}: {issue}")
             
             # Check for overrepresented nucleotide bias in I7/I5 pairs
             bias_issues = check_nucleotide_bias(color_balance_df_i7, color_balance_df_i5)
