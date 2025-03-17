@@ -8,6 +8,16 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 from io import BytesIO
+from itertools import combinations
+
+def hamming_distance(seq1, seq2):
+    return sum(c1 != c2 for c1, c2 in zip(seq1, seq2))
+
+def check_index_diversity(indexes, min_distance=2):
+    too_close_pairs = [(idx1, idx2, hamming_distance(seq1, seq2))
+                       for (idx1, seq1), (idx2, seq2) in combinations(enumerate(indexes), 2)
+                       if hamming_distance(seq1, seq2) < min_distance]
+    return too_close_pairs
 
 st.title("Index Color Balance")
 
@@ -22,6 +32,8 @@ st.write("- Both signals are present in both channels for every cycle (it is acc
 st.write("- Avoid having only a signal from the Blue channel from A or A+G in any cycle")
 st.write("- Avoid no signal cycles (only G present)")
 st.write("- Either of the first two cycles must start with one base other than G")
+st.write("- Ensure indexes are sufficiently diverse to prevent misassignment")
+st.write("- Check for over-represented nucleotide biases in I7/I5 pairings")
 
 def generate_template(): 
     template_df = pd.DataFrame ({"Sample Name": [], "I7 ID": [],"I7 Sequence": [],"I5 ID": [],"I5 Sequence": []})
@@ -120,6 +132,13 @@ if uploaded_file:
                     for cycle, issue in problematic_cycles_i5:
                         st.write(f"Cycle {cycle}: {issue}")
             
+            # Check index diversity
+            diversity_issues = check_index_diversity(i7_indexes + i5_indexes)
+            if diversity_issues:
+                st.warning("⚠️ Index diversity warning: Some index pairs are too similar:")
+                for idx1, idx2, distance in diversity_issues:
+                    st.write(f"Indexes {idx1} and {idx2} have a Hamming distance of {distance} (too close)")
+    
     except Exception as e:
         st.error(f"Error processing file: {e}")
 
