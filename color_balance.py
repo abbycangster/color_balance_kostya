@@ -62,9 +62,11 @@ def check_color_balance(indexes):
         elif row['A'] + row['G'] == 100:
             problematic_cycles.append((cycle, "Potential Issue: Only A + G detected (Blue channel only)"))
     
-    # Check that either of the first two cycles contains a base other than G
-    if df.iloc[0]['G'] == 100 and df.iloc[1]['G'] == 100:
-        problematic_cycles.append(("1-2", "Warning: First two cycles contain only G (No signal at start)"))
+    # Check if any sequence has only G in the first two cycles
+    first_two_cycles = index_matrix[:, :2]  # Get first two bases for all sequences
+    first_two_g_only = np.all(first_two_cycles == "G", axis=1)
+    if any(first_two_g_only):
+        problematic_cycles.append(("1-2", "Warning: At least one sequence has first two cycles containing only G (No signal at start)"))
     
     return df, problematic_cycles
 
@@ -116,6 +118,7 @@ if uploaded_file:
             
     except Exception as e:
         st.error(f"Error processing file: {e}")
+
 
 # In[ ]:
 
