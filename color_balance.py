@@ -13,7 +13,7 @@ from itertools import combinations
 def hamming_distance(seq1, seq2):
     return sum(c1 != c2 for c1, c2 in zip(seq1, seq2))
 
-def check_index_diversity(indexes, min_distance=2):
+def check_index_diversity(indexes, min_distance=3):
     too_close_pairs = [(idx1, idx2, hamming_distance(seq1, seq2))
                        for (idx1, seq1), (idx2, seq2) in combinations(enumerate(indexes), 2)
                        if hamming_distance(seq1, seq2) < min_distance]
