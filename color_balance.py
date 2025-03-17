@@ -39,12 +39,12 @@ st.download_button(
 
 uploaded_file = st.file_uploader("Upload your filled-in template (Excel file)", type=["xlsx"])
 
-def check_color_balance(indexes):
+def check_color_balance(indexes, index_names):
     index_length = len(indexes[0])
     
     if any(len(idx) != index_length for idx in indexes):
         st.error("All index sequences must be the same length.")
-        return None
+        return None, []
 
     index_matrix = np.array([list(idx.upper()) for idx in indexes])
     nucleotide_counts = {nuc: np.count_nonzero(index_matrix == nuc, axis=0) for nuc in "ATCG"}
@@ -65,8 +65,10 @@ def check_color_balance(indexes):
     # Check if any sequence has only G in the first two cycles
     first_two_cycles = index_matrix[:, :2]  # Get first two bases for all sequences
     first_two_g_only = np.all(first_two_cycles == "G", axis=1)
-    if any(first_two_g_only):
-        problematic_cycles.append(("1-2", "Warning: At least one sequence has first two cycles containing only G (No signal at start). Avoid sequenced that start with GG."))
+    gg_indices = [index_names[i] for i in range(len(first_two_g_only)) if first_two_g_only[i]]
+    
+    if gg_indices:
+        problematic_cycles.append(("1-2", f"Warning: The following indexes have first two cycles containing only G (No signal at start): {', '.join(gg_indices)}"))
     
     return df, problematic_cycles
 
@@ -77,9 +79,11 @@ if uploaded_file:
         if "I7 Sequence" in df.columns and "I5 Sequence" in df.columns:
             i7_indexes = df["I7 Sequence"].dropna().astype(str).tolist()
             i5_indexes = df["I5 Sequence"].dropna().astype(str).tolist()
+            i7_ids = df["I7 ID"].astype(str).tolist()
+            i5_ids = df["I5 ID"].astype(str).tolist()
             
             st.subheader("I7 Index")
-            color_balance_df_i7, problematic_cycles_i7 = check_color_balance(i7_indexes)
+            color_balance_df_i7, problematic_cycles_i7 = check_color_balance(i7_indexes, i7_ids)
             if color_balance_df_i7 is not None:
                 st.dataframe(color_balance_df_i7)
                 
@@ -98,7 +102,7 @@ if uploaded_file:
                         st.write(f"Cycle {cycle}: {issue}")
             
             st.subheader("I5 Index")
-            color_balance_df_i5, problematic_cycles_i5 = check_color_balance(i5_indexes)
+            color_balance_df_i5, problematic_cycles_i5 = check_color_balance(i5_indexes, i5_ids)
             if color_balance_df_i5 is not None:
                 st.dataframe(color_balance_df_i5)
                 
