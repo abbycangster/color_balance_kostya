@@ -66,7 +66,7 @@ def check_color_balance(indexes):
     first_two_cycles = index_matrix[:, :2]  # Get first two bases for all sequences
     first_two_g_only = np.all(first_two_cycles == "G", axis=1)
     if any(first_two_g_only):
-        problematic_cycles.append(("1-2", "Warning: At least one sequence has first two cycles containing only G (No signal at start)"))
+        problematic_cycles.append(("1-2", "Warning: At least one sequence has first two cycles containing only G (No signal at start). Avoid sequenced that start with GG."))
     
     return df, problematic_cycles
 
