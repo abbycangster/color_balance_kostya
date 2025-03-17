@@ -3,7 +3,6 @@
 
 # In[1]:
 
-
 import numpy as np 
 import pandas as pd
 import streamlit as st
@@ -12,13 +11,13 @@ from io import BytesIO
 
 st.title("Index Color Balance")
 
-st.write("Download the template and upload the indexes to check the color balance")
+st.subheader("XLEAP SBS reagents on the NextSeq 1000/2000 and NovaSeq X/X Plus")
+st.write("T = Green")
+st.write("C = Blue + Green")
+st.write("A = Blue")
+st.write("G = Dark (no label)")
 
-st.subheader("COLOR BALANCE:")
-st.write("XLEAP SBS reagents on the NextSeq 1000/2000 and NovaSeq X/X Plus")
-st.write("T = Green\nC = Blue + Green\nA = Blue\nG = Dark (no label)")
-
-st.write("\n**Checking for:**")
+st.subheader("\n**Checking for:**")
 st.write("- Both signals are present in both channels for every cycle (it is acceptable to have only the Green channel from T or C if needed)")
 st.write("- Avoid having only a signal from the Blue channel from A or A+G in any cycle")
 st.write("- Avoid no signal cycles (only G present)")
@@ -65,7 +64,7 @@ def check_color_balance(indexes):
     
     # Check that either of the first two cycles contains a base other than G
     if df.iloc[0]['G'] == 100 and df.iloc[1]['G'] == 100:
-        problematic_cycles.append(("1-2", "Warning: First two cycles contain only G (No signal at start)") )
+        problematic_cycles.append(("1-2", "Warning: First two cycles contain only G (No signal at start)"))
     
     return df, problematic_cycles
 
@@ -83,7 +82,7 @@ if uploaded_file:
                 st.dataframe(color_balance_df_i7)
                 
                 fig, ax = plt.subplots()
-                color_balance_df_i7.plot(kind="bar", stacked=True, ax=ax, colormap="viridis")
+                color_balance_df_i7.plot(kind="bar", stacked=True, ax=ax, color=["blue", "green", "cyan", "gray"])
                 ax.set_xlabel("Cycle Position")
                 ax.set_ylabel("Nucleotide %")
                 ax.set_title("I7 Nucleotide % Per Cycle")
@@ -102,7 +101,7 @@ if uploaded_file:
                 st.dataframe(color_balance_df_i5)
                 
                 fig, ax = plt.subplots()
-                color_balance_df_i5.plot(kind="bar", stacked=True, ax=ax, colormap="viridis")
+                color_balance_df_i5.plot(kind="bar", stacked=True, ax=ax, color=["blue", "green", "cyan", "gray"])
                 ax.set_xlabel("Cycle Position")
                 ax.set_ylabel("Nucleotide %")
                 ax.set_title("I5 Nucleotide % Per Cycle")
@@ -117,9 +116,6 @@ if uploaded_file:
             
     except Exception as e:
         st.error(f"Error processing file: {e}")
-
-st.write("Checking to ensure A, T, C, G are well-distributed across cycles.")
-
 
 # In[ ]:
 
