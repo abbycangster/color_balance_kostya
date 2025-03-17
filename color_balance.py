@@ -14,6 +14,16 @@ st.title("Index Color Balance")
 
 st.write("Download the template and upload the indexes to check the color balance")
 
+st.subheader("COLOR BALANCE:")
+st.write("XLEAP SBS reagents on the NextSeq 1000/2000 and NovaSeq X/X Plus")
+st.write("T = Green\nC = Blue + Green\nA = Blue\nG = Dark (no label)")
+
+st.write("\n**Checking for:**")
+st.write("- Both signals are present in both channels for every cycle (it is acceptable to have only the Green channel from T or C if needed)")
+st.write("- Avoid having only a signal from the Blue channel from A or A+G in any cycle")
+st.write("- Avoid no signal cycles (only G present)")
+st.write("- Either of the first two cycles must start with one base other than G")
+
 def generate_template(): 
     template_df = pd.DataFrame ({"Sample Name": [], "I7 ID": [],"I7 Sequence": [],"I5 ID": [],"I5 Sequence": []})
     output = BytesIO()
@@ -52,6 +62,10 @@ def check_color_balance(indexes):
             problematic_cycles.append((cycle, "Dark Cycle: Only G detected (No signal)"))
         elif row['A'] + row['G'] == 100:
             problematic_cycles.append((cycle, "Potential Issue: Only A + G detected (Blue channel only)"))
+    
+    # Check that either of the first two cycles contains a base other than G
+    if df.iloc[0]['G'] == 100 and df.iloc[1]['G'] == 100:
+        problematic_cycles.append(("1-2", "Warning: First two cycles contain only G (No signal at start)") )
     
     return df, problematic_cycles
 
