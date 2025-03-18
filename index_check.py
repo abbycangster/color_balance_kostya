@@ -166,7 +166,7 @@ if uploaded_file:
                     st.write(f"Cycle {cycle}: {issue}")
             
             # Check index diversity
-            diversity_issues = check_index_diversity(i7_sequences + i5_sequences, i7_ids + i5_ids)
+            diversity_issues = check_index_diversity(i7_indexes + i5_indexes, i7_ids + i5_ids)
             if diversity_issues:
                 st.warning("⚠️ Index diversity warning: Some index pairs are too similar:")
                 for idx1, idx2, distance in diversity_issues:
