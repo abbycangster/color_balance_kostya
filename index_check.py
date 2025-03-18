@@ -10,26 +10,6 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from itertools import combinations
 
-def hamming_distance(seq1, seq2):
-    return sum(c1 != c2 for c1, c2 in zip(seq1, seq2))
-
-def check_index_diversity(indexes, min_distance=3):
-    too_close_pairs = [(idx1, idx2, hamming_distance(seq1, seq2))
-                       for (idx1, seq1), (idx2, seq2) in combinations(enumerate(indexes), 2)
-                       if hamming_distance(seq1, seq2) < min_distance]
-    return too_close_pairs
-
-def check_nucleotide_bias(i7_df, i5_df, threshold=50):
-    problematic_cycles = []
-    for cycle in range(len(i7_df)):
-        for base in "ATCG":
-            i7_freq = i7_df.iloc[cycle][base]
-            i5_freq = i5_df.iloc[cycle][base]
-            
-            if i7_freq > threshold and i5_freq > threshold:
-                problematic_cycles.append((cycle + 1, f"Overrepresented nucleotide '{base}' in both I7 and I5 (> {threshold}%)"))
-    return problematic_cycles
-
 st.title("Index Color Balance")
 
 st.subheader("XLEAP SBS reagents on the NextSeq 1000/2000 and NovaSeq X/X Plus")
@@ -62,6 +42,26 @@ st.download_button(
 
 uploaded_file = st.file_uploader("Upload your filled-in template (Excel file)", type=["xlsx"])
 
+def hamming_distance(seq1, seq2):
+    return sum(c1 != c2 for c1, c2 in zip(seq1, seq2))
+
+def check_index_diversity(indexes, min_distance=3):
+    too_close_pairs = [(idx1, idx2, hamming_distance(seq1, seq2))
+                       for (idx1, seq1), (idx2, seq2) in combinations(enumerate(indexes), 2)
+                       if hamming_distance(seq1, seq2) < min_distance]
+    return too_close_pairs
+
+def check_nucleotide_bias(i7_df, i5_df, threshold=60):
+    problematic_cycles = []
+    for cycle in range(len(i7_df)):
+        for base in "ATCG":
+            i7_freq = i7_df.iloc[cycle][base]
+            i5_freq = i5_df.iloc[cycle][base]
+            
+            if i7_freq > threshold and i5_freq > threshold:
+                problematic_cycles.append((cycle + 1, f"Overrepresented nucleotide '{base}' in both I7 and I5 (> {threshold}%)"))
+    return problematic_cycles
+
 def check_color_balance(indexes, index_names):
     index_length = len(indexes[0])
     
@@ -80,9 +80,9 @@ def check_color_balance(indexes, index_names):
     # Detect potential sequencing issues based on Illumina guidelines
     problematic_cycles = []
     for cycle, row in df.iterrows():
-        if row['G'] == 100:
+        if row['G'] >= 90:
             problematic_cycles.append((cycle, "Dark Cycle: Only G detected (No signal)"))
-        elif row['A'] + row['G'] == 100:
+        elif row['A'] + row['G'] >= 90:
             problematic_cycles.append((cycle, "Potential Issue: Only A + G detected (Blue channel only)"))
     
     # Check if any sequence has only G in the first two cycles
