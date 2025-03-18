@@ -107,10 +107,14 @@ def check_color_balance(indexes, index_names):
 
 if uploaded_file:
     try:
-        df = pd.read_excel(uploaded_file, sheet_name="Index Template")
+        df = pd.read_excel(uploaded_file, sheet_name="Index Template", dtype=str)
         df.columns = df.columns.str.strip() 
         
         if "I7 Sequence" in df.columns and "I5 Sequence" in df.columns:
+            df.columns = df.columns.str.strip()  # Ensure no trailing spaces in headers
+            df["I7 Sequence"] = df["I7 Sequence"].str.strip()
+            df["I5 Sequence"] = df["I5 Sequence"].str.strip()
+        
             i7_indexes = df["I7 Sequence"].dropna().astype(str).tolist()
             i5_indexes = df["I5 Sequence"].dropna().astype(str).tolist()
             i7_ids = df["I7 ID"].astype(str).tolist()
