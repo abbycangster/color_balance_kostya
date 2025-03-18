@@ -90,7 +90,7 @@ def check_color_balance(indexes, index_names):
 if uploaded_file:
     try:
         df = pd.read_excel(uploaded_file, sheet_name="Index Template")
-        df_debug.columns = df_debug.columns.str.strip() 
+        df.columns = df_debug.columns.str.strip() 
         
         if "I7 Sequence" in df.columns and "I5 Sequence" in df.columns:
             i7_indexes = df["I7 Sequence"].dropna().astype(str).tolist()
