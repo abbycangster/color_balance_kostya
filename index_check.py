@@ -45,10 +45,28 @@ uploaded_file = st.file_uploader("Upload your filled-in template (Excel file)", 
 def hamming_distance(seq1, seq2):
     return sum(c1 != c2 for c1, c2 in zip(seq1, seq2))
 
-def check_index_diversity(indexes, min_distance=3):
-    too_close_pairs = [(idx1, idx2, hamming_distance(seq1, seq2))
-                       for (idx1, seq1), (idx2, seq2) in combinations(enumerate(indexes), 2)
-                       if hamming_distance(seq1, seq2) < min_distance]
+def check_index_diversity(indexes, index_names, min_distance=3):
+    too_close_pairs = []
+    
+    # Ensure Hamming distance is checked separately for I7 and I5
+    half = len(indexes) // 2  # Assuming equal numbers of I7 and I5 indexes
+    i7_indexes = indexes[:half]
+    i5_indexes = indexes[half:]
+    i7_names = index_names[:half]
+    i5_names = index_names[half:]
+    
+    # Check I7 separately
+    for (idx1, seq1), (idx2, seq2) in combinations(enumerate(i7_indexes), 2):
+        dist = hamming_distance(seq1, seq2)
+        if dist < min_distance:
+            too_close_pairs.append((i7_names[idx1], i7_names[idx2], dist))  # Use correct names
+    
+    # Check I5 separately
+    for (idx1, seq1), (idx2, seq2) in combinations(enumerate(i5_indexes), 2):
+        dist = hamming_distance(seq1, seq2)
+        if dist < min_distance:
+            too_close_pairs.append((i5_names[idx1], i5_names[idx2], dist))  # Use correct names
+    
     return too_close_pairs
 
 def check_nucleotide_bias(i7_df, i5_df, threshold=60):
@@ -80,9 +98,9 @@ def check_color_balance(indexes, index_names):
     # Detect potential sequencing issues based on NovaSeq X+ guidelines
     problematic_cycles = []
     for cycle, row in df.iterrows():
-        if row['G'] == 100:  # Cycle-wide check: if all indexes have G
+        if row['G'] >= 90:  # Cycle-wide check: if all indexes have G
             problematic_cycles.append((cycle, "Dark Cycle: Only G detected (No signal)"))
-        elif row['A'] + row['G'] == 100:  # Cycle-wide check: if all indexes only contain A or G
+        elif row['A'] + row['G'] >= 90:  # Cycle-wide check: if all indexes only contain A or G
             problematic_cycles.append((cycle, "Potential Issue: Only A + G detected (Blue channel only)"))
     
     return df, problematic_cycles
