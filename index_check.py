@@ -77,21 +77,13 @@ def check_color_balance(indexes, index_names):
     # Shift cycle positions to start from 1
     df.index = df.index + 1
     
-    # Detect potential sequencing issues based on Illumina guidelines
+    # Detect potential sequencing issues based on NovaSeq X+ guidelines
     problematic_cycles = []
     for cycle, row in df.iterrows():
-        if row['G'] >= 90:
+        if row['G'] == 100:  # Cycle-wide check: if all indexes have G
             problematic_cycles.append((cycle, "Dark Cycle: Only G detected (No signal)"))
-        elif row['A'] + row['G'] >= 90:
+        elif row['A'] + row['G'] == 100:  # Cycle-wide check: if all indexes only contain A or G
             problematic_cycles.append((cycle, "Potential Issue: Only A + G detected (Blue channel only)"))
-    
-    # Check if any sequence has only G in the first two cycles
-    first_two_cycles = index_matrix[:, :2]  # Get first two bases for all sequences
-    first_two_g_only = np.all(first_two_cycles == "G", axis=1)
-    gg_indices = [index_names[i] for i in range(len(first_two_g_only)) if first_two_g_only[i]]
-    
-    if gg_indices:
-        problematic_cycles.append(("1-2", f"Warning: The following indexes have first two cycles containing only G (No signal at start): {', '.join(gg_indices)}"))
     
     return df, problematic_cycles
 
